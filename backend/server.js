@@ -47,19 +47,18 @@ app.post('/signup', async (req, res, next) => {
     if (!emailRegex.test(email)) {
         return res.status(400).json({ message: "Invalid email format" });
     }
+
     if (password.length < 6) {
         return res.status(400).json({ message: "Password must be at least 6 characters long" });
     }
 
     try {
-        // Check if user exists by email or username
-        const existingUser = await User.findOne({ $or: [{ email }, { username }] });
-        if (existingUser) {
-            const errorMessage = existingUser.email === email 
-                ? "Email already in use." 
-                : "Username already taken.";
-            return res.status(400).json({ message: errorMessage });
-        }
+        // Check if user exists
+        const existingUser = await User.findOne({ email });
+        if (existingUser) return res.status(400).json({ message: "User already exists" });
+
+        const existingUsername = await User.findOne({ username });
+        if (existingUsername) return res.status(400).json({ message: "Username already taken" });
 
         // Hash password
         const hashedPassword = await bcrypt.hash(password, 12);
@@ -72,14 +71,9 @@ app.post('/signup', async (req, res, next) => {
         const token = jwt.sign({ userId: newUser._id }, process.env.JWT_SECRET, { expiresIn: '1h' });
         res.status(201).json({ token });
     } catch (err) {
-        if (err.code === 11000) {
-            // Handle duplicate key error for username or email
-            return res.status(400).json({ message: "Username or email already in use." });
-        }
-        next(err); // Pass to error handler for other errors
+        next(err); // Pass to error handler
     }
 });
-
 
 // Login route
 app.post('/login', async (req, res, next) => {
