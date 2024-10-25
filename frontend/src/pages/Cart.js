@@ -20,6 +20,7 @@ const Cart = ({ onClose }) => {
   const navigate = useNavigate(); // Get navigate function
 
   const handleCheckout = () => {
+    onClose(); // Close the cart
     navigate('/checkout'); // Navigate to the checkout page
   };
 
@@ -73,7 +74,7 @@ const Cart = ({ onClose }) => {
       </Box>
       <Box sx={{ marginTop: 2, textAlign: 'center' }}>
         <Button 
-          onClick={handleCheckout}
+          onClick={handleCheckout} // Call handleCheckout on click
           variant="contained" 
           color="primary"
           sx={{ width: '100%', backgroundColor: '#088F8F', '&:hover': { backgroundColor: 'white', color: '#088F8F' } }} // Checkout button

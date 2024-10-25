@@ -18,6 +18,9 @@ import MenuIcon from '@mui/icons-material/Menu';
 import Cart from '../pages/Cart'; // Import the Cart component
 import { useCart } from '../pages/CartContext';
 import { useNavigate } from 'react-router-dom'; // Import useNavigate for programmatic navigation
+import { useAuth } from '../pages/AuthContext'; // Import useAuth
+import { LogoutOutlined } from '@ant-design/icons'; // Import Ant Design Logout icon
+import { message } from 'antd'; // Import Ant Design message component
 
 const Search = styled('div')(({ theme }) => ({
   position: 'relative',
@@ -62,9 +65,10 @@ const StyledInputBase = styled(InputBase)(({ theme }) => ({
 
 const Navbar = () => {
   const { cart } = useCart();
+  const { isAuthenticated, logout } = useAuth(); // Use useAuth to get authentication state
   const [cartOpen, setCartOpen] = useState(false);
   const [drawerOpen, setDrawerOpen] = useState(false);
-  const navigate = useNavigate(); // Initialize useNavigate
+  const navigate = useNavigate();
 
   const handleCartToggle = () => {
     setCartOpen((prev) => !prev);
@@ -78,6 +82,11 @@ const Navbar = () => {
     setDrawerOpen(open);
   };
 
+  const handleLogout = () => {
+    logout(); // Call the logout function from AuthContext
+    message.success('Logout successful!'); // Show logout message
+  };
+
   return (
     <>
       <AppBar position="static" sx={{ backgroundColor: '#088F8F' }}>
@@ -85,9 +94,6 @@ const Navbar = () => {
           <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
             Shoe Store
           </Typography>
-
-          {/* Home Button */}
-       
 
           {/* Mobile Menu Icon */}
           <IconButton
@@ -103,15 +109,14 @@ const Navbar = () => {
 
           {/* Navigation Buttons */}
           <Box sx={{ flexGrow: 1, display: { xs: 'none', sm: 'flex' }, justifyContent: 'center' }}>
-          <Button color="inherit" onClick={() => navigate('/')}>Home</Button> {/* Navigate to main page */}
-
-            <Button color="inherit" onClick={() => navigate('/')}>Men</Button> {/* Navigate to main page */}
-            <Button color="inherit" onClick={() => navigate('/')}>Women</Button> {/* Navigate to main page */}
-            <Button color="inherit" onClick={() => navigate('/')}>Sale</Button> {/* Navigate to main page */}
-            <Button color="inherit" onClick={() => navigate('/')}>New Arrival</Button> {/* Navigate to main page */}
+            <Button color="inherit" onClick={() => navigate('/')}>Home</Button>
+            <Button color="inherit" onClick={() => navigate('/')}>Men</Button>
+            <Button color="inherit" onClick={() => navigate('/')}>Women</Button>
+            <Button color="inherit" onClick={() => navigate('/')}>Sale</Button>
+            <Button color="inherit" onClick={() => navigate('/')}>New Arrival</Button>
           </Box>
 
-          {/* Search, Cart, and Login/Signup Buttons */}
+          {/* Search, Cart, and Login/Signup/Logout Buttons */}
           <Box sx={{ display: 'flex', alignItems: 'center' }}>
             <Search>
               <SearchIconWrapper>
@@ -130,9 +135,17 @@ const Navbar = () => {
               </Badge>
             </IconButton>
 
-            {/* Navigation Buttons for Login and Signup */}
-            <Button color="inherit" onClick={() => navigate('/login')}>Login</Button>
-            <Button color="inherit" onClick={() => navigate('/signup')}>Signup</Button>
+            {/* Conditional Rendering for Authentication Buttons */}
+            {isAuthenticated ? (
+              <IconButton color="inherit" onClick={handleLogout}>
+                <LogoutOutlined />
+              </IconButton>
+            ) : (
+              <>
+                <Button color="inherit" onClick={() => navigate('/login')}>Login</Button>
+                <Button color="inherit" onClick={() => navigate('/signup')}>Signup</Button>
+              </>
+            )}
           </Box>
         </Toolbar>
       </AppBar>
@@ -144,27 +157,26 @@ const Navbar = () => {
         onClose={toggleDrawer(false)}
       >
         <List>
-      <ListItem button onClick={() => navigate('/')}>
-        <ListItemText primary="Men" />
-      </ListItem>
-      <ListItem button onClick={() => navigate('/')}>
-        <ListItemText primary="Home" />
-      </ListItem>
-      <ListItem button onClick={() => navigate('/')}>
-        <ListItemText primary="Sale" />
-      </ListItem>
-      {/* Add more items here */}
-    </List>
+          <ListItem button onClick={() => navigate('/')}>
+            <ListItemText primary="Men" />
+          </ListItem>
+          <ListItem button onClick={() => navigate('/')}>
+            <ListItemText primary="Home" />
+          </ListItem>
+          <ListItem button onClick={() => navigate('/')}>
+            <ListItemText primary="Sale" />
+          </ListItem>
+          {/* Add more items here */}
+        </List>
       </Drawer>
 
       {/* Cart Component */}
       {cartOpen && (
-  <Cart 
-    onClose={handleCloseCart} 
-    sx={{ position: 'fixed', top: 0, right: 0, width: '300px', height: '100%', bgcolor: 'white', boxShadow: 2, zIndex: 1200 }} 
-  />
-)}
-
+        <Cart 
+          onClose={handleCloseCart} 
+          sx={{ position: 'fixed', top: 0, right: 0, width: '300px', height: '100%', bgcolor: 'white', boxShadow: 2, zIndex: 1200 }} 
+        />
+      )}
     </>
   );
 };

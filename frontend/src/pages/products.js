@@ -1,11 +1,9 @@
 import React, { useState } from 'react';
 import Slider from 'react-slick';
-import { Box, Button, Card, CardContent, CardMedia, Typography, CardActions } from '@mui/material';
+import { Box, Button, Card, CardMedia, Typography, CardActions } from '@mui/material';
 import { styled, alpha } from '@mui/material/styles';
 import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
-import image from '../../src/images/shoepic.jpg';
-import image2 from '../../src/images/shoepic2.jpg';
 import { useCart } from './CartContext';
 import { useAuth } from './AuthContext'; 
 import { useNavigate } from 'react-router-dom'; 

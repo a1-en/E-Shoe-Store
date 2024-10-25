@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Box, Button, Typography } from '@mui/material';
 import { styled } from '@mui/material/styles';
 
@@ -20,8 +20,9 @@ const HeroContainer = styled(Box)(({ theme }) => ({
     top: 0,
     left: 0,
     width: '100%',
-    height: '0%',
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    height: '100%', // Full height
+    backgroundColor: 'rgba(0, 0, 0, 0.5)', // Dark overlay
+    transition: 'opacity 0.5s ease-in-out',
   },
 }));
 
@@ -34,6 +35,16 @@ const Content = styled(Box)(({ theme }) => ({
 }));
 
 const HeroSection = () => {
+  const [imageLoaded, setImageLoaded] = useState(false);
+
+  useEffect(() => {
+    const img = new Image();
+    img.src = 'https://images.pexels.com/photos/1598508/pexels-photo-1598508.jpeg'; // Update with your image URL
+    img.onload = () => {
+      setImageLoaded(true);
+    };
+  }, []);
+
   return (
     <HeroContainer>
       <Content>
@@ -47,6 +58,23 @@ const HeroSection = () => {
           Sale
         </Button>
       </Content>
+      {!imageLoaded && (
+        <Box
+          sx={{
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            width: '100%',
+            height: '100%',
+            backgroundColor: 'rgba(255, 255, 255, 0.8)', // White placeholder
+            zIndex: 0,
+          }}
+        >
+          <Typography variant="h6" sx={{ textAlign: 'center', paddingTop: '40%' }}>
+            Loading...
+          </Typography>
+        </Box>
+      )}
     </HeroContainer>
   );
 };
