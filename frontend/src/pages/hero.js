@@ -87,7 +87,7 @@ const Hero = () => {
               browse through our collections for that sneakers you've always wanted.
             </Typography>
 
-            <Link to="/products" style={{ textDecoration: 'none' }}>
+            <Link to="/men" style={{ textDecoration: 'none' }}>
               <MotionButton
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
