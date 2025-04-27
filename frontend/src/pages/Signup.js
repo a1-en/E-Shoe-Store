@@ -1,32 +1,52 @@
 // src/pages/Signup.js
 import React, { useState } from 'react';
-import { Box, TextField, Button, Typography, Paper } from '@mui/material';
+import { Box, TextField, Button, Typography, Paper,  CircularProgress } from '@mui/material';
 import { message } from 'antd';
 import { useNavigate } from 'react-router-dom';
 import { styled } from '@mui/material/styles';
 
 const StyledPaper = styled(Paper)(({ theme }) => ({
+  position: 'relative',
   padding: theme.spacing(4),
   textAlign: 'center',
-  backgroundImage: 'url(https://images.pexels.com/photos/19090/pexels-photo-19090.jpeg)', // Background image of shoes
+  backgroundImage: 'url(https://images.pexels.com/photos/19090/pexels-photo-19090.jpeg)',
   backgroundSize: 'cover',
   backgroundPosition: 'center',
-  borderRadius: '10px',
+  borderRadius: '12px',
   boxShadow: theme.shadows[5],
-  color: theme.palette.common.white,
+  overflow: 'hidden',
+  '&::before': {
+    content: '""',
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    background: 'rgba(255, 255, 255, 0.9)',
+    borderRadius: '12px',
+    zIndex: 0,
+  },
+  '& > *': {
+    position: 'relative',
+    zIndex: 1,
+  },
 }));
 
 const TitleTypography = styled(Typography)(({ theme }) => ({
-  color: 'black', // Ensure the title is white for better visibility
+  color: 'black',
+  fontWeight: 600,
+  marginBottom: theme.spacing(3),
 }));
 
 const Signup = () => {
   const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
   const handleSignup = async () => {
+    setLoading(true);
     try {
       const response = await fetch('https://e-shoe-store.onrender.com/signup', {
         method: 'POST',
@@ -46,6 +66,8 @@ const Signup = () => {
       }
     } catch (error) {
       message.error('An error occurred during signup', error);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -63,8 +85,8 @@ const Signup = () => {
           fullWidth
           margin="normal"
           variant="outlined"
-          InputLabelProps={{ style: { color: 'black' } }} // Change label color to black
-          InputProps={{ style: { color: 'black' } }} // Change input text color
+          InputLabelProps={{ style: { color: 'black' } }}
+          InputProps={{ style: { color: 'black' } }}
         />
         <TextField
           label="Email"
@@ -73,8 +95,8 @@ const Signup = () => {
           fullWidth
           margin="normal"
           variant="outlined"
-          InputLabelProps={{ style: { color: 'black' } }} // Change label color to black
-          InputProps={{ style: { color: 'black' } }} // Change input text color
+          InputLabelProps={{ style: { color: 'black' } }}
+          InputProps={{ style: { color: 'black' } }}
         />
         <TextField
           label="Password"
@@ -84,23 +106,27 @@ const Signup = () => {
           fullWidth
           margin="normal"
           variant="outlined"
-          InputLabelProps={{ style: { color: 'black' } }} // Change label color to black
-          InputProps={{ style: { color: 'black' } }} // Change input text color
+          InputLabelProps={{ style: { color: 'black' } }}
+          InputProps={{ style: { color: 'black' } }}
         />
         <Button
           variant="contained"
-          color="secondary"
+          color="primary"
           onClick={handleSignup}
           fullWidth
           sx={{
             marginTop: 2,
-            backgroundColor: '#088F8F', // Custom color for button
+            color: 'white',
+            backgroundColor: '#FF6F00',
             '&:hover': {
-              backgroundColor: 'white', // Darker color on hover
+              bgcolor: 'common.white',
+              color: '#FF6F00',
+              boxShadow: '0 4px 20px rgba(255,107,107,0.4)',
             },
           }}
+          disabled={loading}
         >
-          Signup
+          {loading ? <CircularProgress size={24} color="inherit" /> : 'Signup'}
         </Button>
       </StyledPaper>
     </Box>

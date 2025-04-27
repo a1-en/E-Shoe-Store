@@ -1,139 +1,71 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Slider from 'react-slick';
-import { Box, Button, Card, CardMedia, Typography, CardActions } from '@mui/material';
-import { styled, alpha } from '@mui/material/styles';
+import {
+  Box,
+  Button,
+  Card,
+  CardMedia,
+  Typography,
+  Container,
+  useTheme,
+  IconButton,
+  Rating,
+  Chip,
+  Skeleton,
+} from '@mui/material';
+import {
+  ShoppingCart as CartIcon,
+  Favorite as FavoriteIcon,
+  ArrowForward as ArrowForwardIcon,
+} from '@mui/icons-material';
+import { motion, AnimatePresence } from 'framer-motion';
 import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
 import { useCart } from './CartContext';
-import { useAuth } from './AuthContext'; 
-import { useNavigate } from 'react-router-dom'; 
+import { useAuth } from './AuthContext';
+import { useNavigate } from 'react-router-dom';
 import { message } from 'antd'; // Import Ant Design message
 
-const products = [
-  { 
-    id: 1, 
-    name: 'Nike SB Stefan Janoski', 
-    category: 'Men', 
-    price: '$110', 
-    image: 'https://images.pexels.com/photos/1478442/pexels-photo-1478442.jpeg' // Nike SB Stefan Janoski
-  },
-  { 
-    id: 2, 
-    name: 'Nike Air Force 1', 
-    category: 'Men', 
-    price: '$120', 
-    image: 'https://images.pexels.com/photos/2048548/pexels-photo-2048548.jpeg' // Nike Air Force 1
-  },
-  { 
-    id: 3, 
-    name: 'Beige Peep-Toe Heeled Sandals', 
-    category: 'Women', 
-    price: '$85', 
-    image: 'https://images.pexels.com/photos/137603/pexels-photo-137603.jpeg' // Beige Peep-Toe Heeled Sandals
-  },
-  { 
-    id: 4, 
-    name: 'Pink High Heeled Sandals', 
-    category: 'Women', 
-    price: '$95', 
-    image: 'https://images.pexels.com/photos/27113457/pexels-photo-27113457.jpeg' // Pink High Heeled Sandals
-  },
-  { 
-    id: 5, 
-    name: 'White Sandals with Silver Straps', 
-    category: 'Women', 
-    price: '$70', 
-    image: 'https://images.pexels.com/photos/14825375/pexels-photo-14825375.jpeg' // White Sandals with Silver Straps
-  },
-  { 
-    id: 6, 
-    name: 'Red and White Low-Top Sneakers', 
-    category: 'Men', 
-    price: '$80', 
-    image: 'https://images.pexels.com/photos/1449844/pexels-photo-1449844.jpeg' // Red and White Low-Top Sneakers
-  },
-];
-
-
-const Container = styled(Box)(({ theme }) => ({
-  padding: theme.spacing(4),
-  textAlign: 'center',
-  backgroundColor: '#f9f9f9',
-}));
-
-const FilterButtons = styled(Box)(({ theme }) => ({
-  marginBottom: theme.spacing(2),
-  display: 'flex',
-  justifyContent: 'center',
-  gap: theme.spacing(2),
-}));
-
-const StyledCard = styled(Card)(({ theme }) => ({
-  maxWidth: 320,
-  margin: 'auto',
-  borderRadius: '20px',
-  boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
-  overflow: 'hidden',
-  position: 'relative',
-  backgroundColor: '#fff',
-  transition: 'transform 0.3s ease-in-out, box-shadow 0.3s ease-in-out',
-  '&:hover': {
-    transform: 'scale(1.05)',
-    boxShadow: '0 8px 24px rgba(0, 0, 0, 0.15)',
-  },
-}));
-
-const Overlay = styled(Box)(({ theme }) => ({
-  position: 'absolute',
-  bottom: 0,
-  left: 0,
-  right: 0,
-  backgroundColor: alpha('#000', 0.6),
-  color: '#fff',
-  padding: theme.spacing(2),
-  textAlign: 'left',
-  transition: 'background-color 0.3s ease',
-  '&:hover': {
-    backgroundColor: alpha('#000', 0.8),
-  },
-}));
-
-const ProductImage = styled(CardMedia)(({ theme }) => ({
-  height: 300,
-  objectFit: 'cover',
-  transition: 'transform 0.3s ease',
-  '&:hover': {
-    transform: 'scale(1.1)',
-  },
-}));
-
-const ProductCardActions = styled(CardActions)(({ theme }) => ({
-  display: 'flex',
-  justifyContent: 'space-between',
-  padding: theme.spacing(1, 2),
-  backgroundColor: '#fff',
-  borderTop: `1px solid ${alpha(theme.palette.grey[500], 0.2)}`,
-}));
-
-const AddToCartButton = styled(Button)(({ theme }) => ({
-  backgroundColor: '#088F8F',
-  color: '#fff',
-  '&:hover': {
-    backgroundColor: '#066a6a',
-  },
-  transition: 'background-color 0.3s',
-}));
+const MotionContainer = motion(Container);
+const MotionCard = motion(Card);
+const MotionButton = motion(Button);
 
 const ProductsSection = () => {
+  const theme = useTheme();
   const [filter, setFilter] = useState('All');
+  const [products, setProducts] = useState([]);
+  const [loading, setLoading] = useState(true);
   const { addToCart } = useCart() || {};
-  const { isAuthenticated } = useAuth(); 
-  const navigate = useNavigate(); 
+  const { isAuthenticated } = useAuth();
+  const navigate = useNavigate();
 
-  // Log the authentication status
-  console.log('isAuthenticated:', isAuthenticated);
+  useEffect(() => {
+    const fetchProducts = async () => {
+      try {
+        setLoading(true);
+        const [mensResponse, womensResponse] = await Promise.all([
+          fetch('https://dummyjson.com/products/category/mens-shoes'),
+          fetch('https://dummyjson.com/products/category/womens-shoes')
+        ]);
+        
+        const mensData = await mensResponse.json();
+        const womensData = await womensResponse.json();
+        
+        setProducts([...mensData.products, ...womensData.products]);
+        setLoading(false);
+      } catch (error) {
+        console.error('Error fetching products:', error);
+        message.error('Failed to load products');
+        setLoading(false);
+      }
+    };
 
-  const filteredProducts = filter === 'All' ? products : products.filter(product => product.category === filter);
+    fetchProducts();
+  }, []);
+
+  const filteredProducts = filter === 'All'
+    ? products
+    : products.filter(product => product.category === filter);
 
   const settings = {
     dots: true,
@@ -141,6 +73,9 @@ const ProductsSection = () => {
     speed: 500,
     slidesToShow: 3,
     slidesToScroll: 1,
+    autoplay: true,
+    autoplaySpeed: 5000,
+    pauseOnHover: true,
     responsive: [
       {
         breakpoint: 1024,
@@ -160,68 +95,323 @@ const ProductsSection = () => {
   };
 
   const handleAddToCart = (product) => {
-    console.log('Add to Cart clicked for:', product.name);
+    console.log('Add to Cart clicked for:', product.title);
     if (!isAuthenticated) {
-      message.error('You must register to use the cart! Please register first.'); // Ant Design message for error
-      navigate('/signup');
+      message.error('Please login to add items to cart!'); // Updated error message
+      navigate('/login'); // Changed from /signup to /login
     } else {
-      console.log(`Adding ${product.name} to cart.`);
+      console.log(`Adding ${product.title} to cart.`);
       addToCart(product);
-      message.success(`${product.name} added to cart!`); // Ant Design message for success
+      message.success(`${product.title} added to cart!`); // Ant Design message for success
     }
   };
 
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: {
+        duration: 0.5,
+        staggerChildren: 0.1,
+      },
+    },
+  };
+
+  const itemVariants = {
+    hidden: { y: 20, opacity: 0 },
+    visible: {
+      y: 0,
+      opacity: 1,
+      transition: {
+        duration: 0.5,
+        ease: 'easeOut',
+      },
+    },
+  };
+
+  const filterButtons = [
+    { label: 'All', value: 'All' },
+    { label: 'Men', value: 'mens-shoes' },
+    { label: 'Women', value: 'womens-shoes' },
+  ];
+
   return (
-    <Container>
-      <Typography variant="h4" component="div" gutterBottom>
-        Our Products
-      </Typography>
-      <FilterButtons>
-        <Button variant="contained" onClick={() => {
-          setFilter('All');
-          console.log('Filter set to All');
-        }}>
-          All
-        </Button>
-        <Button variant="contained" onClick={() => {
-          setFilter('Men');
-          console.log('Filter set to Men');
-        }}>
-          Men
-        </Button>
-        <Button variant="contained" onClick={() => {
-          setFilter('Women');
-          console.log('Filter set to Women');
-        }}>
-          Women
-        </Button>
-      </FilterButtons>
-      <Slider {...settings}>
-        {filteredProducts.map(product => (
-          <StyledCard key={product.id}>
-            <ProductImage
-              component="img"
-              image={product.image}
-              alt={product.name}
-            />
-            <Overlay>
-              <Typography variant="h6">
-                {product.name}
-              </Typography>
-              <Typography variant="body2">
-                {product.price}
-              </Typography>
-            </Overlay>
-            <ProductCardActions>
-              <AddToCartButton size="small" onClick={() => handleAddToCart(product)}>
-                Add to Cart
-              </AddToCartButton>
-              <Button size="small">Learn More</Button>
-            </ProductCardActions>
-          </StyledCard>
-        ))}
-      </Slider>
-    </Container>
+    <MotionContainer
+      maxWidth="lg"
+      variants={containerVariants}
+      initial="hidden"
+      animate="visible"
+      style={{ width: '100%', padding: '0 16px' }}
+      sx={{
+        py: { xs: 4, md: 8 },
+        overflow: 'hidden',
+        margin: '0 auto',
+      }}
+    >
+      <Box
+        component={motion.div}
+        variants={itemVariants}
+        style={{ width: '100%' }}
+        sx={{
+          textAlign: 'center',
+          mb: 6,
+        }}
+      >
+        <Typography
+          variant="h2"
+          sx={{
+            fontWeight: 700,
+            fontSize: { xs: '2rem', md: '3rem' },
+            mb: 2,
+            background: `linear-gradient(45deg, ${theme.palette.primary.main}, ${theme.palette.secondary.main})`,
+            backgroundClip: 'text',
+            textFillColor: 'transparent',
+            WebkitBackgroundClip: 'text',
+            WebkitTextFillColor: 'transparent',
+          }}
+        >
+          Featured Collection
+        </Typography>
+        <Typography
+          variant="h5"
+          color="text.secondary"
+          sx={{
+            maxWidth: '600px',
+            mx: 'auto',
+            mb: 4,
+            fontSize: { xs: '1rem', md: '1.25rem' },
+          }}
+        >
+          Discover our handpicked selection of premium footwear
+        </Typography>
+
+        <Box
+          sx={{
+            display: 'flex',
+            justifyContent: 'center',
+            gap: 2,
+            flexWrap: 'wrap',
+            mb: 4,
+          }}
+        >
+          {filterButtons.map((btn) => (
+            <Button
+              key={btn.value}
+              variant={filter === btn.value ? 'contained' : 'outlined'}
+              onClick={() => setFilter(btn.value)}
+              style={{ width: 'auto' }}
+              sx={{
+                borderRadius: '20px',
+                px: 3,
+                py: 1,
+                textTransform: 'none',
+                fontSize: '1rem',
+                fontWeight: 500,
+                position: 'relative',
+                color: 'text.primary',
+                background: filter === btn.value ? `linear-gradient(45deg, ${theme.palette.primary.main}, ${theme.palette.secondary.main})` : 'none',
+                boxShadow: 'none',
+                '&:hover': {
+                  color: 'text.primary',
+                  backgroundColor: 'transparent',
+                },
+                '&::after': {
+                  content: '""',
+                  position: 'absolute',
+                  width: '0%',
+                  height: '2px',
+                  bottom: 0,
+                  left: '50%',
+                  transform: 'translateX(-50%)',
+                  bgcolor: 'primary.main',
+                  transition: 'width 0.3s ease',
+                },
+                '&:hover::after': {
+                  width: '80%',
+                },
+              }}
+            >
+              {btn.label}
+            </Button>
+          ))}
+        </Box>
+      </Box>
+
+      <AnimatePresence mode="wait">
+        {loading ? (
+          <Box sx={{ display: 'flex', gap: 2, justifyContent: 'center', flexWrap: 'wrap' }}>
+            {[1, 2, 3].map((n) => (
+              <Skeleton
+                key={n}
+                variant="rectangular"
+                width={320}
+                height={400}
+                sx={{ borderRadius: 2 }}
+              />
+            ))}
+          </Box>
+        ) : (
+          <Slider {...settings} style={{ width: '100%', margin: '0 auto' }}>
+            {filteredProducts.map((product) => (
+              <Box key={product.id} sx={{ p: 1, display: 'flex', justifyContent: 'center' }}>
+                <MotionCard
+                  variants={itemVariants}
+                  whileHover={{ y: -10 }}
+                  style={{ width: '100%' }}
+                  sx={{
+                    maxWidth: 320,
+                    borderRadius: 4,
+                    overflow: 'hidden',
+                    bgcolor: 'background.paper',
+                    boxShadow: theme.shadows[8],
+                    position: 'relative',
+                  }}
+                >
+                  <Box sx={{ position: 'relative' }}>
+                    <CardMedia
+                      component="img"
+                      height="300"
+                      image={product.thumbnail}
+                      alt={product.title}
+                      sx={{
+                        transition: 'transform 0.3s ease-in-out',
+                        '&:hover': {
+                          transform: 'scale(1.1)',
+                        },
+                      }}
+                    />
+                    <Box
+                      sx={{
+                        position: 'absolute',
+                        top: 12,
+                        right: 12,
+                        display: 'flex',
+                        gap: 1,
+                      }}
+                    >
+                      <IconButton
+                        component={motion.button}
+                        whileHover={{ scale: 1.1 }}
+                        whileTap={{ scale: 0.9 }}
+                        sx={{
+                          bgcolor: 'background.paper',
+                          boxShadow: theme.shadows[2],
+                          '&:hover': { bgcolor: 'background.paper' },
+                        }}
+                      >
+                        <FavoriteIcon color="error" />
+                      </IconButton>
+                    </Box>
+                  </Box>
+
+                  <Box sx={{ p: 2 }}>
+                    <Typography
+                      variant="h6"
+                      sx={{
+                        fontWeight: 600,
+                        mb: 1,
+                        overflow: 'hidden',
+                        textOverflow: 'ellipsis',
+                        whiteSpace: 'nowrap',
+                        cursor: 'pointer',
+                        '&:hover': { textDecoration: 'underline' },
+                      }}
+                      onClick={() => navigate(`/product/${product.id}`)}
+                    >
+                      {product.title}
+                    </Typography>
+
+                    <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
+                      <Rating value={product.rating} precision={0.5} readOnly size="small" />
+                      <Typography variant="body2" color="text.secondary" sx={{ ml: 1 }}>
+                        ({product.rating})
+                      </Typography>
+                    </Box>
+
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
+                      <Chip
+                        label={product.brand}
+                        size="small"
+                        sx={{
+                          bgcolor: 'primary.light',
+                          color: 'primary.contrastText',
+                          fontWeight: 500,
+                        }}
+                      />
+                      <Typography
+                        variant="h6"
+                        color="primary"
+                        sx={{ fontWeight: 700, ml: 'auto' }}
+                      >
+                        ${product.price}
+                      </Typography>
+                    </Box>
+
+                    <Box sx={{ display: 'flex', gap: 1 }}>
+                      <MotionButton
+                        fullWidth
+                        variant="contained"
+                        startIcon={<CartIcon />}
+                        onClick={() => handleAddToCart(product)}
+                        component={motion.button}
+                        whileHover={{ scale: 1.02 }}
+                        whileTap={{ scale: 0.98 }}
+                        style={{ width: '100%' }}
+                        sx={{
+                          backgroundColor: '#FF6F00',
+                          color: 'white',
+                          textTransform: 'none',
+                          fontWeight: 500,
+                          '&:hover': {
+                            bgcolor: 'common.white',
+                            color: '#FF6F00',
+                            boxShadow: '0 4px 20px rgba(255,107,107,0.4)',
+                          },
+                        }}
+                      >
+                        Add to Cart
+                      </MotionButton>
+                      <Button
+                        variant="outlined"
+                        style={{ width: 'auto' }}
+                        sx={{
+                          minWidth: 'auto',
+                          px: 2,
+                          position: 'relative',
+                          color: 'text.primary',
+                          boxShadow: 'none',
+                          '&:hover': {
+                            color: 'text.primary',
+                            backgroundColor: 'transparent',
+                          },
+                          '&::after': {
+                            content: '""',
+                            position: 'absolute',
+                            width: '0%',
+                            height: '2px',
+                            bottom: 0,
+                            left: '50%',
+                            transform: 'translateX(-50%)',
+                            bgcolor: 'primary.main',
+                            transition: 'width 0.3s ease',
+                          },
+                          '&:hover::after': {
+                            width: '80%',
+                          },
+                        }}
+                        onClick={() => navigate(`/product/${product.id}`)}
+                      >
+                        <ArrowForwardIcon />
+                      </Button>
+                    </Box>
+                  </Box>
+                </MotionCard>
+              </Box>
+            ))}
+          </Slider>
+        )}
+      </AnimatePresence>
+    </MotionContainer>
   );
 };
 
