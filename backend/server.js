@@ -10,9 +10,15 @@ const app = express();
 app.use(cors()); // Use CORS middleware
 app.use(express.json());
 
-mongoose.connect(process.env.MONGO_URI, { useNewUrlParser: true, useUnifiedTopology: true })
+mongoose.connect(process.env.MONGO_URI)
     .then(() => console.log("MongoDB Connected"))
-    .catch(err => console.log(err));
+    .catch(err => {
+        console.error("MongoDB Connection Error:", err.message);
+        if (err.message.includes('ENOTFOUND')) {
+            console.error("DNS lookup failed. Please check your MONGO_URI connection string.");
+            console.error("Make sure the cluster name in your connection string is correct.");
+        }
+    });
 
 // Middleware to verify JWT
 const auth = (req, res, next) => {

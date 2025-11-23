@@ -1,6 +1,6 @@
 import React from 'react';
 import { Box, Typography, Button } from '@mui/material';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import heroImg from '../assets/hero.png';
 import { styled } from '@mui/material/styles';
